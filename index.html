@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+  *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+  :root {
+    --bg:#0d1117; --surface:#161b22; --surface2:#1c2128; --border:#30363d;
+    --red:#b31b1b; --red-dim:rgba(179,27,27,0.15);
+    --green:#3fb950; --green-dim:rgba(63,185,80,0.12);
+    --yellow:#d29922; --yellow-dim:rgba(210,153,34,0.12);
+    --blue:#58a6ff; --blue-dim:rgba(88,166,255,0.1);
+    --text:#e6edf3; --text-muted:#7d8590; --text-dim:#484f58;
+    --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif;
+  }
+  body { background:var(--bg); color:var(--text); font-family:var(--sans); min-height:100vh; }
+
+  .header { background:var(--surface); border-bottom:1px solid var(--border); padding:16px 24px; display:flex; align-items:center; gap:12px; }
+  .logo { width:32px; height:32px; background:var(--red); clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%); flex-shrink:0; }
+  .header-title { font-family:var(--mono); font-size:14px; font-weight:600; letter-spacing:0.05em; }
+  .header-sub { font-family:var(--mono); font-size:11px; color:var(--text-muted); margin-top:2px; }
+  .badge-cornell { margin-left:auto; background:var(--red-dim); border:1px solid var(--red); color:var(--red); font-family:var(--mono); font-size:10px; font-weight:600; padding:3px 8px; }
+
+  .main { padding:24px; max-width:1100px; margin:0 auto; }
+
+  /* Instructions strip */
+  .instructions {
+    background:var(--surface2);
+    border:1px solid var(--border);
+    border-left: 3px solid var(--blue);
+    padding:14px 18px;
+    margin-bottom:16px;
+    display:flex;
+    gap:32px;
+    align-items:flex-start;
+  }
+  .instr-title {
+    font-family:var(--mono); font-size:10px; font-weight:600;
+    color:var(--blue); text-transform:uppercase; letter-spacing:0.08em;
+    white-space:nowrap; margin-top:1px; flex-shrink:0;
+  }
+  .steps {
+    display:flex; gap:0; flex-wrap:wrap;
+  }
+  .step {
+    display:flex; align-items:flex-start; gap:8px;
+    padding-right:24px;
+  }
+  .step-num {
+    font-family:var(--mono); font-size:10px; font-weight:600;
+    color:var(--blue); background:var(--blue-dim);
+    border:1px solid var(--blue);
+    width:18px; height:18px; display:flex; align-items:center; justify-content:center;
+    flex-shrink:0; margin-top:1px;
+  }
+  .step-text {
+    font-family:var(--mono); font-size:11px; color:var(--text-muted); line-height:1.5;
+  }
+  .step-text strong { color:var(--text); font-weight:600; }
+  .step-arrow {
+    font-family:var(--mono); font-size:11px; color:var(--text-dim);
+    padding-right:24px; padding-top:2px;
+  }
+
+  .input-box { background:var(--surface); border:1px solid var(--border); margin-bottom:16px; }
+  .input-hdr { padding:10px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .input-lbl { font-family:var(--mono); font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; }
+  .input-tag { font-family:var(--mono); font-size:9px; background:var(--blue-dim); border:1px solid var(--blue); color:var(--blue); padding:2px 8px; }
+  textarea { width:100%; background:var(--bg); color:var(--text-muted); font-family:var(--mono); font-size:11px; line-height:1.6; border:none; padding:14px 16px; resize:vertical; min-height:160px; outline:none; }
+  textarea::placeholder { color:var(--text-dim); }
+
+  .parse-row { display:flex; align-items:center; gap:12px; margin-bottom:24px; }
+  .parse-btn { background:var(--red); color:#fff; border:none; font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:0.06em; padding:9px 24px; cursor:pointer; text-transform:uppercase; transition:opacity .15s; }
+  .parse-btn:hover { opacity:.85; }
+
+  .sec { font-family:var(--mono); font-size:10px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-muted); padding-bottom:10px; border-bottom:1px solid var(--border); margin-bottom:16px; }
+
+  .grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:24px; }
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:24px; }
+  .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:24px; }
+
+  .card { background:var(--surface); border:1px solid var(--border); padding:14px 16px; }
+  .lbl { font-family:var(--mono); font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px; }
+  .val-lg { font-family:var(--mono); font-size:20px; font-weight:600; }
+  .unit { font-family:var(--mono); font-size:11px; color:var(--text-muted); margin-left:4px; }
+
+  .sm-wrap { background:var(--surface); border:1px solid var(--border); padding:20px 24px; display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:24px; margin-bottom:24px; }
+  .sm-num { font-family:var(--mono); font-size:48px; font-weight:600; line-height:1; }
+  .sm-num.g{color:var(--green);} .sm-num.w{color:var(--yellow);} .sm-num.b{color:var(--red);}
+  .sm-row { display:flex; gap:28px; margin-bottom:10px; flex-wrap:wrap; }
+  .sm-kv .k { font-family:var(--mono); font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; }
+  .sm-kv .v { font-family:var(--mono); font-size:13px; color:var(--text); margin-top:2px; }
+  .auto-badge { font-family:var(--mono); font-size:9px; color:var(--green); background:var(--green-dim); border:1px solid var(--green); padding:1px 5px; margin-left:6px; vertical-align:middle; }
+  .bar-track { height:6px; background:var(--surface2); position:relative; border:1px solid var(--border); margin-top:10px; }
+  .bar-zone { position:absolute; top:-1px; bottom:-1px; left:calc(5%/35*100%); width:calc(20%/35*100%); background:rgba(63,185,80,.2); border:1px solid rgba(63,185,80,.3); }
+  .bar-fill { height:100%; background:var(--green); transition:width .5s; max-width:100%; }
+  .bar-fill.w{background:var(--yellow);} .bar-fill.b{background:var(--red);}
+  .bar-labels { display:flex; justify-content:space-between; font-family:var(--mono); font-size:9px; color:var(--text-dim); margin-top:4px; }
+  .verdict { font-family:var(--mono); font-size:11px; font-weight:600; padding:8px 14px; text-align:center; letter-spacing:0.06em; text-transform:uppercase; white-space:nowrap; }
+  .verdict.g{background:var(--green-dim);border:1px solid var(--green);color:var(--green);}
+  .verdict.w{background:var(--yellow-dim);border:1px solid var(--yellow);color:var(--yellow);}
+  .verdict.b{background:var(--red-dim);border:1px solid var(--red);color:var(--red);}
+
+  .mode-card { background:var(--surface); border:1px solid var(--border); overflow:hidden; }
+  .mode-hdr { padding:10px 14px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .mode-name { font-family:var(--mono); font-size:12px; font-weight:600; }
+  .mode-type { font-family:var(--mono); font-size:10px; color:var(--text-muted); }
+  .badge { font-family:var(--mono); font-size:9px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; padding:3px 8px; }
+  .badge.g{background:var(--green-dim);color:var(--green);border:1px solid var(--green);}
+  .badge.b{background:var(--red-dim);color:var(--red);border:1px solid var(--red);}
+  .mode-body { padding:14px; }
+  .metrics-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:12px; }
+  .metrics-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+  .mm-lbl { font-family:var(--mono); font-size:9px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.06em; }
+  .mm-val { font-family:var(--mono); font-size:14px; font-weight:500; margin-top:2px; }
+  .mm-val-big { font-family:var(--mono); font-size:26px; font-weight:600; margin-top:4px; }
+  .interp { background:var(--surface2); border-left:2px solid var(--border); padding:8px 10px; font-size:11px; color:var(--text-muted); line-height:1.5; }
+  .interp.g{border-left-color:var(--green);} .interp.w{border-left-color:var(--yellow);} .interp.b{border-left-color:var(--red);}
+
+  .drv-card { background:var(--surface); border:1px solid var(--border); padding:14px 16px; }
+  .drv-title { font-family:var(--mono); font-size:10px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:10px; }
+  .drv-row { display:flex; justify-content:space-between; align-items:baseline; padding:4px 0; border-bottom:1px solid var(--border); }
+  .drv-row:last-child{border-bottom:none;}
+  .drv-key { font-family:var(--mono); font-size:11px; color:var(--text-muted); }
+  .drv-val { font-family:var(--mono); font-size:12px; }
+  .drv-note { font-size:10px; color:var(--text-dim); margin-left:8px; }
+  .cg{color:var(--green);} .cb{color:var(--red);}
+
+  .eigen-tbl { width:100%; border-collapse:collapse; font-family:var(--mono); font-size:11px; }
+  .eigen-tbl th { padding:8px 12px; text-align:left; color:var(--text-muted); font-size:10px; text-transform:uppercase; letter-spacing:0.06em; border-bottom:1px solid var(--border); font-weight:500; }
+  .eigen-tbl td { padding:7px 12px; border-bottom:1px solid var(--surface2); }
+
+  .results{display:none;} .results.visible{display:block;}
+  .err{background:var(--red-dim);border:1px solid var(--red);color:var(--red);font-family:var(--mono);font-size:12px;padding:16px;margin-bottom:24px;display:none;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo"></div>
+  <div>
+    <div class="header-title">XFLR5 LOG INTERPRETER</div>
+    <div class="header-sub">Cornell DBF — Stability Analysis Reader</div>
+  </div>
+  <div class="badge-cornell">DBF 2025–26</div>
+</div>
+
+<div class="main">
+
+  <!-- Instructions -->
+  <div class="instructions">
+    <div class="instr-title">How to get<br>the log</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">Run your stability analysis in <strong>Wing and Plane Design</strong>. Make sure it completes without errors.</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text">In the menu bar, click <strong>Analysis → View Log File</strong>. A text window will open.</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">Click inside the log window, press <strong>Ctrl+A</strong> (or Cmd+A on Mac) to select all, then <strong>Ctrl+C</strong> to copy.</div>
+      </div>
+      <div class="step-arrow">→</div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-text">Paste into the box below and click <strong>Parse →</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="input-box">
+    <div class="input-hdr">
+      <span class="input-lbl">Full XFLR5 Log Output</span>
+      <span class="input-tag">PASTE ENTIRE LOG — everything is extracted automatically</span>
+    </div>
+    <textarea id="logInput" placeholder="Paste the entire XFLR5 log here (Analysis → View Log File → Ctrl+A → Ctrl+C → paste here)."></textarea>
+  </div>
+
+  <div class="parse-row">
+    <button class="parse-btn" onclick="go()">Parse →</button>
+  </div>
+
+  <div class="err" id="err"></div>
+  <div class="results" id="res"></div>
+</div>
+
+<script>
+const pf = s => { const v=parseFloat(String(s).replace(/\s/g,'')); return isNaN(v)?null:v; };
+const fmt = (v,d=3) => v!=null?Number(v).toFixed(d):'—';
+const G = 9.81;
+
+function parseFullLog(t) {
+  const n = re => { const m=t.match(re); return m?pf(m[1]):null; };
+  const VInf  = n(/VInf\s*=\s*([\d.]+)/);
+  const Alpha  = n(/Alpha\s*=\s*([\d.]+)/);
+  const Mass   = n(/Mass\s*=\s*([\d.]+)/);
+  const area   = n(/Reference Area\s*=\s*([\d.]+)/);
+  const span   = n(/Reference length\s*=\s*([\d.]+)/);
+  const chord  = (area&&span)?area/span:null;
+  const rho    = n(/Density\s*=\s*([\d.]+)/);
+  const cogX   = n(/CoG_x\s*=\s*([-\d.]+)/);
+  const cogZ   = n(/CoG_z\s*=\s*([-\d.]+)/);
+  const Ixx    = n(/Ib?xx\s*=\s*([\d.]+)/);
+  const Iyy    = n(/Ib?yy\s*=\s*([\d.]+)/);
+  const Izz    = n(/Ib?zz\s*=\s*([\d.]+)/);
+  const Ixz    = n(/Ib?xz\s*=\s*([\d.]+)/);
+  const XNP    = n(/Neutral Point position\s*=\s*([\d.]+)/);
+  const CL     = (Mass&&VInf&&area&&rho)?(Mass*G)/(0.5*rho*VInf*VInf*area):null;
+  const CLa = n(/CLa\s*=\s*([-\d.]+)/);
+  const Cma = n(/Cma\s*=\s*([-\d.]+)/);
+  const Cmq = n(/Cmq\s*=\s*([-\d.]+)/);
+  const CYb = n(/CYb\s*=\s*([-\d.]+)/);
+  const Clb = n(/Clb\s*=\s*([-\d.]+)/);
+  const Cnb = n(/Cnb\s*=\s*([-\d.]+)/);
+
+  const longPipe = parsePipeEigen(t, 'Longitudinal');
+  const latPipe  = parsePipeEigen(t, 'Lateral');
+  const longBlock = parseModes(t, 'Longitudinal');
+  const latBlock  = parseModes(t, 'Lateral');
+
+  return {
+    VInf, Alpha, Mass, area, span, chord, rho, cogX, cogZ,
+    Ixx, Iyy, Izz, Ixz, XNP, CL, CLa, Cma, Cmq, CYb, Clb, Cnb,
+    longModes: longPipe.length?longPipe:longBlock,
+    latModes:  latPipe.length ?latPipe :latBlock,
+    phillipsPhugoid: parsePhillips(t,'Phugoid'),
+    phillipsDutch:   parsePhillips(t,'Dutch'),
+  };
+}
+
+function parsePipeEigen(t, section) {
+  const sRe = new RegExp(section+'\\s+modes[\\s\\S]*?(?=___[A-Z]|Phillips|Panel Analysis|$)','i');
+  const sec = t.match(sRe);
+  if (!sec) return [];
+  const line = sec[0].match(/Eigenvalue:\s*(.+)/);
+  if (!line) return [];
+  return line[1].split('|').map(p=>{
+    const m=p.trim().match(/^([-\d.e]+)\+\s*([-\d.e]+)i$/);
+    if (!m) return null;
+    return eigenToMode(pf(m[1]), pf(m[2])??0);
+  }).filter(Boolean);
+}
+
+function eigenToMode(real, imag) {
+  const oscillatory = Math.abs(imag)>0.001;
+  if (oscillatory) {
+    const wn=Math.sqrt(real*real+imag*imag), zeta=-real/wn;
+    return { realPart:real, imagPart:imag, oscillatory:true,
+             freq:wn/(2*Math.PI), dfreq:Math.abs(imag)/(2*Math.PI), damp:zeta, t2:null, tc:null };
+  }
+  return { realPart:real, imagPart:imag, oscillatory:false, freq:0, dfreq:0, damp:null,
+           tc:real<0?Math.abs(1/real):null, t2:real>0?Math.log(2)/real:null };
+}
+
+function parseModes(t, section) {
+  const sRe=new RegExp(section+'\\s+modes:[\\s\\S]*?(?=(?:Lateral|Phillips|$))','i');
+  const sec=t.match(sRe); if (!sec) return [];
+  const modes=[], eRe=/Eigenvalue\s*=\s*([-\d.]+)\s*([+-]\s*[\d.]+)i[\s\S]*?(?=Eigenvalue|$)/g; let m;
+  while ((m=eRe.exec(sec[0]))!==null) {
+    const block=m[0], real=pf(m[1]), imag=pf(m[2].replace(/\s/g,''));
+    modes.push({realPart:real,imagPart:imag,oscillatory:Math.abs(imag||0)>0.01,
+      freq:pf((block.match(/Undamped Natural Frequency\s*=\s*([\d.]+)/)||[])[1]),
+      dfreq:pf((block.match(/Damped Natural Frequency\s*=\s*([\d.]+)/)||[])[1]),
+      damp:pf((block.match(/Damping Ratio\s*=\s*([\d.]+)/)||[])[1]),
+      t2:pf((block.match(/Time to double\s*=\s*([\d.]+)/)||[])[1]),
+      tc:pf((block.match(/Time constant\s*=\s*([\d.]+)/)||[])[1])});
+  }
+  return modes;
+}
+
+function parsePhillips(t,type) {
+  const re=type==='Phugoid'?/Phugoid[\s\S]*?damping:\s*([\d.]+)/i:/Dutch[\s\S]*?damping:\s*([\d.]+)/i;
+  const m=t.match(re); if(!m) return null;
+  return {freq:pf((m[0].match(/frequency:\s*([\d.]+)/)||[])[1]),damp:pf(m[1])};
+}
+
+function dedup(modes) {
+  const osc=[],non=[];
+  for (const m of modes) {
+    if (m.oscillatory) { if (!osc.find(s=>Math.abs((s.freq||0)-(m.freq||0))<0.001)) osc.push(m); }
+    else               { if (!non.find(s=>Math.abs((s.realPart||0)-(m.realPart||0))<0.001)) non.push(m); }
+  }
+  return [...osc,...non];
+}
+
+function go() {
+  const raw=document.getElementById('logInput').value.trim();
+  const errEl=document.getElementById('err'), resEl=document.getElementById('res');
+  errEl.style.display='none'; resEl.classList.remove('visible'); resEl.innerHTML='';
+  if (!raw) { showErr('Paste your XFLR5 log above.'); return; }
+  const d=parseFullLog(raw);
+  if (!d.VInf&&!d.XNP&&!d.longModes.length) { showErr('Could not parse this log. Make sure you are pasting a complete XFLR5 stability analysis log.'); return; }
+  render(d);
+}
+function showErr(m){const e=document.getElementById('err');e.textContent=m;e.style.display='block';}
+
+function render(d) {
+  const resEl=document.getElementById('res');
+  const long=dedup(d.longModes||[]), lat=dedup(d.latModes||[]);
+  const longOsc=long.filter(m=>m.oscillatory).sort((a,b)=>(b.freq||0)-(a.freq||0));
+  const spm=longOsc[0]||null, phugoid=longOsc[1]||null;
+  const latNon=lat.filter(m=>!m.oscillatory).sort((a,b)=>(a.realPart||0)-(b.realPart||0));
+  const rollSub=latNon[0]||null, spiral=latNon[latNon.length-1]||null;
+  const dutch=lat.filter(m=>m.oscillatory)[0]||null;
+
+  let h='';
+
+  h+=sec('Flight Conditions')+'<div class="grid-4">';
+  h+=c4('Airspeed',fmt(d.VInf,2),'m/s')+c4('Trim AoA',d.Alpha!=null?d.Alpha.toFixed(2)+'°':'—','');
+  h+=c4('Mass',fmt(d.Mass,3),'kg')+c4('CL (computed)',fmt(d.CL,4),'');
+  h+='</div>';
+
+  if (d.chord||d.Ixx!=null) {
+    h+=sec('Reference Geometry & Inertia')+'<div class="grid-4">';
+    h+=c4('Ref. Area',fmt(d.area,5),'m²')+c4('Span',fmt(d.span,4),'m');
+    h+=c4('Chord (A/b)',fmt(d.chord,4),'m')+c4('Density',fmt(d.rho,3),'kg/m³');
+    h+=c4('CoG x',fmt(d.cogX,4),'m')+c4('CoG z',fmt(d.cogZ,4),'m');
+    h+=c4('Iyy',fmt(d.Iyy,4),'kg·m²')+c4('Ixz',fmt(d.Ixz,4),'kg·m²');
+    h+='</div>';
+  }
+
+  h+=sec('Static Margin')+smBlock(d);
+
+  h+=sec('Key Stability Derivatives')+'<div class="grid-2">';
+  h+=drvCard('Longitudinal',[
+    {key:'CLα',val:d.CLa,good:v=>v>0,note:v=>v>0?'Positive lift slope ✓':'Negative — check geometry'},
+    {key:'Cmα',val:d.Cma,good:v=>v<0,note:v=>v<0?'Pitch stable ✓':'Pitch unstable — check CG/tail'},
+    {key:'Cmq',val:d.Cmq,good:v=>v<0,note:v=>v<0?'Pitch damping present ✓':'No pitch damping'},
+  ]);
+  h+=drvCard('Lateral',[
+    {key:'CYβ',val:d.CYb,good:v=>v<0,note:v=>v<0?'Side force opposes sideslip ✓':'Check VT sizing'},
+    {key:'Clβ',val:d.Clb,good:v=>v<0,note:v=>v<0?'Dihedral effect present ✓':'Low dihedral effect'},
+    {key:'Cnβ',val:d.Cnb,good:v=>v>0,note:v=>v>0?'Weathercock stable ✓':'Directionally unstable'},
+  ]);
+  h+='</div>';
+
+  h+=sec('Longitudinal Modes')+'<div class="grid-2">';
+  if(spm)     h+=modeCard('Short Period','Longitudinal · Oscillatory',spm,'spm',d.phillipsPhugoid);
+  if(phugoid) h+=modeCard('Phugoid','Longitudinal · Oscillatory',phugoid,'phugoid',d.phillipsPhugoid);
+  h+='</div>';
+
+  h+=sec('Lateral Modes')+'<div class="grid-3">';
+  if(rollSub) h+=modeCard('Roll Subsidence','Lateral · Non-oscillatory',rollSub,'roll');
+  if(dutch)   h+=modeCard('Dutch Roll','Lateral · Oscillatory',dutch,'dutch',d.phillipsDutch);
+  if(spiral)  h+=modeCard('Spiral','Lateral · Non-oscillatory',spiral,'spiral');
+  h+='</div>';
+
+  h+=eigenTable(d.longModes||[],d.latModes||[]);
+
+  resEl.innerHTML=h; resEl.classList.add('visible');
+}
+
+function smBlock(d) {
+  const xnp=d.XNP,cg=d.cogX,chord=d.chord;
+  let smVal=null,cls='g',vt='',vc='g';
+  if(xnp!=null&&cg!=null&&chord!=null){
+    smVal=(xnp-cg)/chord*100;
+    if(smVal>=5&&smVal<=25){cls='g';vt='✓ Stable — Within DBF Target';vc='g';}
+    else if(smVal>25&&smVal<=35){cls='w';vt='⚠ Overly Stable — May Be Sluggish';vc='w';}
+    else if(smVal>35){cls='w';vt='⚠ Very High SM — Hard to Maneuver';vc='w';}
+    else if(smVal>0&&smVal<5){cls='w';vt='⚠ Marginally Stable';vc='w';}
+    else{cls='b';vt='✗ Unstable — CG Aft of NP';vc='b';}
+  }
+  const display=smVal!=null?smVal.toFixed(1)+'%':'—';
+  const pct=smVal!=null?Math.min(Math.max(smVal,0),35)/35*100:0;
+  const ab='<span class="auto-badge">AUTO</span>';
+  const npStr=xnp!=null?xnp.toFixed(4)+' m '+ab:'—';
+  const cgStr=cg!=null?cg.toFixed(4)+' m '+ab:'—';
+  const chStr=chord!=null?chord.toFixed(4)+' m '+ab:'—';
+  const verdictHtml=smVal!=null?`<div class="verdict ${vc}">${vt}</div>`:'<div></div>';
+  return `<div class="sm-wrap">
+    <div><div class="sm-num ${cls}">${display}</div><div style="font-family:var(--mono);font-size:10px;color:var(--text-muted);margin-top:4px">STATIC MARGIN</div></div>
+    <div>
+      <div class="sm-row">
+        <div class="sm-kv"><div class="k">Neutral Point</div><div class="v">${npStr}</div></div>
+        <div class="sm-kv"><div class="k">CG from nose</div><div class="v">${cgStr}</div></div>
+        <div class="sm-kv"><div class="k">Mean Chord</div><div class="v">${chStr}</div></div>
+      </div>
+      <div class="bar-track"><div class="bar-zone"></div><div class="bar-fill ${cls==='g'?'':cls}" style="width:${pct}%"></div></div>
+      <div class="bar-labels"><span>0%</span><span>5%</span><span>15%</span><span>25%</span><span>35%+</span></div>
+    </div>
+    ${verdictHtml}
+  </div>`;
+}
+
+function modeCard(name,type,mode,tag,phil){
+  const isSp=tag==='spiral',isRl=tag==='roll';
+  const stable=mode.oscillatory?(mode.damp??0)>0:(mode.realPart??0)<0;
+  const bCls=isSp?((mode.realPart??0)<0?'g':'b'):(stable?'g':'b');
+  const bTxt=isSp?((mode.realPart??0)<0?'STABLE':'UNSTABLE'):(stable?'STABLE':'UNSTABLE');
+  const iCls=isSp?((mode.realPart??0)<0?'g':'w'):(stable?'g':'b');
+
+  let metrics='';
+  if(isSp){
+    const t2=mode.t2!=null?mode.t2.toFixed(2)+' s':((mode.realPart??0)>0?(Math.log(2)/Math.abs(mode.realPart)).toFixed(2)+' s':'—');
+    const t2c=(mode.realPart??0)>0?'var(--yellow)':'var(--green)';
+    const t2l=(mode.realPart??0)>0?'Time to Double':'Time to Halve';
+    metrics=`<div class="metrics-2">
+      <div><div class="mm-lbl">${t2l}</div><div class="mm-val-big" style="color:${t2c}">${t2}</div></div>
+      <div>
+        <div class="mm-lbl">Eigenvalue λ</div>
+        <div class="mm-val" style="color:${(mode.realPart??0)<0?'var(--green)':'var(--red)'}">${fmt(mode.realPart,5)}</div>
+        <div class="mm-lbl" style="margin-top:10px">Sign</div>
+        <div class="mm-val" style="font-size:11px;color:${(mode.realPart??0)<0?'var(--green)':'var(--red)'}">
+          ${(mode.realPart??0)<0?'Negative (stable)':'Positive (unstable)'}
+        </div>
+      </div>
+    </div>`;
+  } else if(isRl){
+    const tc=mode.tc??(mode.realPart?Math.abs(1/mode.realPart):null);
+    metrics=`<div class="metrics-3">
+      <div><div class="mm-lbl">Eigenvalue λ</div><div class="mm-val">${fmt(mode.realPart,4)}</div></div>
+      <div><div class="mm-lbl">Time Constant</div><div class="mm-val">${tc?tc.toFixed(4)+' s':'—'}</div></div>
+      <div><div class="mm-lbl">Character</div><div class="mm-val" style="font-size:11px;color:var(--green)">Non-oscillatory</div></div>
+    </div>`;
+  } else {
+    const pn=phil?` · Phillips ζ=${phil.damp.toFixed(3)}`:'';
+    metrics=`<div class="metrics-3">
+      <div><div class="mm-lbl">Nat. Freq</div><div class="mm-val">${fmt(mode.freq,3)} Hz</div></div>
+      <div><div class="mm-lbl">Damped Freq</div><div class="mm-val">${fmt(mode.dfreq,3)} Hz</div></div>
+      <div><div class="mm-lbl">Damping ζ${pn?'<br><span style="font-size:9px;color:var(--text-dim)">'+pn+'</span>':''}</div><div class="mm-val">${fmt(mode.damp,3)}</div></div>
+    </div>`;
+  }
+  return `<div class="mode-card">
+    <div class="mode-hdr"><div><div class="mode-name">${name}</div><div class="mode-type">${type}</div></div><span class="badge ${bCls}">${bTxt}</span></div>
+    <div class="mode-body">${metrics}<div class="interp ${iCls}">${interp(tag,mode,phil)}</div></div>
+  </div>`;
+}
+
+function interp(tag,mode,phil){
+  const damp=mode.damp,freq=mode.freq,lam=mode.realPart??0;
+  if(tag==='spm'){
+    if(!damp) return 'Could not compute damping.';
+    if(damp>0.5) return `Well-damped (ζ=${damp.toFixed(3)}). Pitch disturbances settle in ~${freq?(1/freq).toFixed(2):'?'} s.`;
+    if(damp>0.2) return `Moderately damped (ζ=${damp.toFixed(3)}). Pitch oscillations settle in a few cycles.`;
+    return `Lightly damped (ζ=${damp.toFixed(3)}). May feel bouncy in pitch. Consider increasing tail volume.`;
+  }
+  if(tag==='phugoid'){
+    const pn=phil?` (Phillips ζ=${phil.damp.toFixed(3)})`:'';
+    if(!damp) return 'Could not compute.';
+    if(damp>0.1) return `Well-damped phugoid${pn}. Speed/altitude oscillations settle without pilot input.`;
+    if(damp>0)   return `Lightly damped (ζ=${damp.toFixed(3)})${pn}. Gentle altitude/speed oscillation at ${freq?.toFixed(3)} Hz — pilot corrects within ~${freq?(1/freq).toFixed(0):'?'} s.`;
+    return `Unstable phugoid${pn}. Altitude will diverge. Review CG and drag.`;
+  }
+  if(tag==='roll'){
+    const tc=mode.tc||(lam?Math.abs(1/lam):null);
+    return `Non-oscillatory roll decay. Time constant ≈ ${tc?tc.toFixed(4):'?'} s — essentially instantaneous. Roll feels natural to the pilot.`;
+  }
+  if(tag==='dutch'){
+    const pn=phil?` (Phillips ζ=${phil.damp.toFixed(3)})`:'';
+    if(!damp) return 'Could not compute.';
+    if(damp>0.15) return `Well-damped Dutch roll (ζ=${damp.toFixed(3)})${pn}. Rolling/yawing oscillations settle quickly.`;
+    if(damp>0.05) return `Lightly damped (ζ=${damp.toFixed(3)})${pn}. Rocking motion settles slowly — typical for RC aircraft.`;
+    return `Very lightly damped (ζ=${damp.toFixed(3)})${pn}. Consider increasing VT size.`;
+  }
+  if(tag==='spiral'){
+    const t2=mode.t2??(lam>0?(Math.log(2)/lam).toFixed(2):null);
+    if(lam<0) return `Stable spiral — bank disturbances decay on their own.`;
+    return `Mildly unstable (λ=+${lam.toFixed(5)}). Time to double ≈ ${t2??'?'} s. Normal and acceptable for RC aircraft — pilot has ample time to correct.`;
+  }
+  return '';
+}
+
+const sec=t=>`<div class="sec">${t}</div>`;
+const c4=(l,v,u)=>`<div class="card"><div class="lbl">${l}</div><div class="val-lg">${v}<span class="unit">${u}</span></div></div>`;
+function drvCard(title,rows){
+  const r=rows.filter(d=>d.val!=null).map(d=>{
+    const c=d.good(d.val)?'cg':'cb';
+    return `<div class="drv-row"><span class="drv-key">${d.key}</span><span><span class="drv-val ${c}">${d.val.toFixed(5)}</span><span class="drv-note">${d.note(d.val)}</span></span></div>`;
+  }).join('');
+  return `<div class="drv-card"><div class="drv-title">${title} Derivatives</div>${r}</div>`;
+}
+function eigenTable(long,lat){
+  const row=(m,i,s)=>`<tr>
+    <td style="color:var(--text-muted);font-size:10px">${s}</td><td>${i+1}</td>
+    <td>${fmt(m.realPart,5)}</td>
+    <td>${m.imagPart!=null?(m.imagPart>=0?'+':'')+m.imagPart.toFixed(5)+'i':'—'}</td>
+    <td>${fmt(m.freq,4)}</td><td>${m.damp!=null?fmt(m.damp,4):'—'}</td>
+    <td>${(m.realPart??0)<0?'<span style="color:var(--green)">stable</span>':'<span style="color:var(--red)">unstable</span>'}</td>
+  </tr>`;
+  return `<div style="margin-bottom:24px">
+    <div class="sec">Raw Eigenvalues</div>
+    <div style="background:var(--surface);border:1px solid var(--border);overflow-x:auto">
+      <table class="eigen-tbl">
+        <thead><tr>${['Section','#','Real','Imag','Freq (Hz)','ζ','Status'].map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+        <tbody>${long.map((m,i)=>row(m,i,'Long.')).join('')}${lat.map((m,i)=>row(m,i,'Lat.')).join('')}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+</script>
+</body>
+</html>
